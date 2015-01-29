@@ -10,7 +10,7 @@ namespace StartAuction
 {
     class StartAuction
     {
-        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:1000", TOPIC = "StartAuction", SERVER_NAME = "localhost";
+        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:1000", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1001", TOPIC = "StartAuction", SERVER_NAME = "localhost";        
         private const int NAMESPACE = 0;
         private NetMQContext context = NetMQContext.Create();
 
@@ -24,14 +24,32 @@ namespace StartAuction
             subscriber.Connect(SUBSCRIBER_ADDRESS);
             subscriber.Subscribe(TOPIC);
             Console.WriteLine("Subscribed to " + TOPIC + " command...");
+            var publisher = context.CreatePublisherSocket();
+            publisher.Bind(PUBLISHER_ADDRESS);
 
             while (true)
             {
                 string command = subscriber.ReceiveString();
                 Console.WriteLine("Received command: " + command);
+
                 string id = parseMessage(command, "<id>", "</id>");
                 string[] emails = getBidderEmails(id);
+                publishNotifyBiddersCommand(id, publisher, emails);
             }
+        }
+
+        private void publishNotifyBiddersCommand(string id, NetMQ.Sockets.PublisherSocket publisher, string[] emails)
+        {
+            StringBuilder addresses = new StringBuilder();
+
+            foreach (string address in emails)
+            {
+                addresses.Append(address + ";");
+            }
+
+            string message = "<id>" + id + "</id>" + " <params>" + addresses.ToString().Substring(0, addresses.ToString().Length - 1) + "</params>";
+            publisher.Send("NotifyBidder " + message);
+            Console.WriteLine("Published " + message + " command: " + message);
         }
 
         private string[] getBidderEmails(string id)
