@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using StackExchange.Redis;
 using NetMQ;
 
@@ -10,7 +7,8 @@ namespace StartAuction
 {
     class StartAuction
     {
-        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:1000", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1001", TOPIC = "StartAuction", SERVER_NAME = "localhost";        
+        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:1000", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1001",
+            TOPIC = "StartAuction", SERVER_NAME = "localhost";        
         private const int NAMESPACE = 0;
         private NetMQContext context = NetMQContext.Create();
 
@@ -35,7 +33,14 @@ namespace StartAuction
                 string id = parseMessage(command, "<id>", "</id>");
                 string[] emails = getBidderEmails(id);
                 publishNotifyBiddersCommand(id, publisher, emails);
+                publishAuctionStartedEvent(id, publisher);
             }
+        }
+
+        private void publishAuctionStartedEvent(string id, NetMQ.Sockets.PublisherSocket publisher) {
+            string message = "AuctionStarted <id>" + id + "</id>";
+            publisher.Send(message);
+            Console.WriteLine("Published " + message + " event...");
         }
 
         private void publishNotifyBiddersCommand(string id, NetMQ.Sockets.PublisherSocket publisher, string[] emails)
@@ -47,9 +52,9 @@ namespace StartAuction
                 addresses.Append(address + ";");
             }
 
-            string message = "<id>" + id + "</id>" + " <params>" + addresses.ToString().Substring(0, addresses.ToString().Length - 1) + "</params>";
-            publisher.Send("NotifyBidder " + message);
-            Console.WriteLine("Published " + message + " command: " + message);
+            string message = "NotifyBidder <id>" + id + "</id>" + " <params>" + addresses.ToString().Substring(0, addresses.ToString().Length - 1) + "</params>";
+            publisher.Send(message);
+            Console.WriteLine("Published " + message + " command");
         }
 
         private string[] getBidderEmails(string id)
