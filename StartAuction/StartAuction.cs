@@ -17,6 +17,7 @@ namespace StartAuction
             TOPIC = "StartAuction", SERVER_NAME = "localhost", STAT_PUBLISHER_ADDRESS = "tcp://127.0.0.1:1111";        
         private const int NAMESPACE = 0;
         private NetMQContext context = NetMQContext.Create();
+        private NetMQ.Sockets.PublisherSocket stat_publisher;
 
         static void Main(string[] args) {
             new StartAuction().subscribe();
@@ -29,6 +30,8 @@ namespace StartAuction
             Console.WriteLine("Subscribed to " + TOPIC + " command...");
             var publisher = context.CreatePublisherSocket();
             publisher.Bind(PUBLISHER_ADDRESS);
+            stat_publisher = context.CreatePublisherSocket();
+            stat_publisher.Bind(STAT_PUBLISHER_ADDRESS);
 
             while (true) {
                 string command = subscriber.ReceiveString();
@@ -84,9 +87,7 @@ namespace StartAuction
         }
 
         private void publishAcknowledgement(string message){
-            var publisher = context.CreatePublisherSocket();
-            publisher.Bind(STAT_PUBLISHER_ADDRESS);
-            publisher.Send("ACK: " + message);
+            stat_publisher.Send("ACK: " + message);
             Console.WriteLine("Acknowledgement sent...");
         }
     }
