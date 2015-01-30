@@ -13,11 +13,11 @@ namespace StartAuction
 {
     class StartAuction
     {
-        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:1000", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1001",
-            TOPIC = "StartAuction", SERVER_NAME = "localhost", STAT_PUBLISHER_ADDRESS = "tcp://127.0.0.1:1111";        
+        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:0002", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1010",
+            TOPIC = "StartAuction", SERVER_NAME = "localhost", ACK_PUBLISHER_ADDRESS = "tcp://127.0.0.1:0001";        
         private const int NAMESPACE = 0;
         private NetMQContext context = NetMQContext.Create();
-        private NetMQ.Sockets.PublisherSocket stat_publisher;
+        private NetMQ.Sockets.PublisherSocket acknowledgement;
 
         static void Main(string[] args) {
             new StartAuction().subscribe();
@@ -30,8 +30,8 @@ namespace StartAuction
             Console.WriteLine("Subscribed to " + TOPIC + " command...");
             var publisher = context.CreatePublisherSocket();
             publisher.Bind(PUBLISHER_ADDRESS);
-            stat_publisher = context.CreatePublisherSocket();
-            stat_publisher.Bind(STAT_PUBLISHER_ADDRESS);
+            acknowledgement = context.CreatePublisherSocket();
+            acknowledgement.Bind(ACK_PUBLISHER_ADDRESS);
 
             while (true) {
                 string command = subscriber.ReceiveString();
@@ -87,7 +87,7 @@ namespace StartAuction
         }
 
         private void publishAcknowledgement(string message){
-            stat_publisher.Send("ACK: " + message);
+            acknowledgement.Send("ACK: " + message);
             Console.WriteLine("Acknowledgement sent...");
         }
     }
