@@ -2,6 +2,7 @@
 using System.Text;
 using StackExchange.Redis;
 using NetMQ;
+using System.Threading;
 
 /*
  *  The documentation was consulted on how to use both third party libraries for Redis and 0mq  
@@ -11,72 +12,69 @@ using NetMQ;
 
 namespace StartAuction
 {
-    class StartAuction
-    {
-        private const string SUBSCRIBER_ADDRESS = "tcp://127.0.0.1:0002", PUBLISHER_ADDRESS = "tcp://127.0.0.1:1010",
-            TOPIC = "StartAuction", SERVER_NAME = "localhost", ACK_PUBLISHER_ADDRESS = "tcp://127.0.0.1:0001";        
-        private const int NAMESPACE = 0;
+    class StartAuction { 
         private NetMQContext context = NetMQContext.Create();
-        private NetMQ.Sockets.PublisherSocket acknowledgement;
+        private NetMQ.Sockets.PublisherSocket ackPub, publisher;
 
-        static void Main(string[] args) {
-            new StartAuction().subscribe();
-        }
+        static void Main(string[] args) { new StartAuction().subscribeToStartAuction(); }
 
-        private void subscribe() {
-            var subscriber = context.CreateSubscriberSocket();
-            subscriber.Connect(SUBSCRIBER_ADDRESS);
-            subscriber.Subscribe(TOPIC);
-            Console.WriteLine("Subscribed to " + TOPIC + " command...");
-            var publisher = context.CreatePublisherSocket();
-            publisher.Bind(PUBLISHER_ADDRESS);
-            acknowledgement = context.CreatePublisherSocket();
-            acknowledgement.Bind(ACK_PUBLISHER_ADDRESS);
+        private void subscribeToStartAuction() {
+            var startAuctionSub = context.CreateSubscriberSocket();
+            startAuctionSub.Connect(Constants.START_AUCTION_ADR);
+            startAuctionSub.Subscribe(Constants.START_AUCTION_TOPIC);
+            Console.WriteLine("SUB: " + Constants.START_AUCTION_TOPIC + " command");
+
+            initializePublishers();
+            new Thread(new ThreadStart(subToNotifyBiddersAck)).Start();
+            new Thread(new ThreadStart(subToAuctionStartedAck)).Start();
 
             while (true) {
-                string command = subscriber.ReceiveString();
-                Console.WriteLine("Received command: " + command);
-                publishAcknowledgement(command);
-                string id = parseMessage(command, "<id>", "</id>");
+                string startAuctionCmd = startAuctionSub.ReceiveString();
+                Console.WriteLine("\nREC: " + startAuctionCmd);
+                publishAcknowledgement(startAuctionCmd);
+                string id = parseMessage(startAuctionCmd, "<id>", "</id>");
                 string[] emails = getBidderEmails(id);
 
-                if (emails != null) {
-                    publishNotifyBiddersCommand(id, publisher, emails);
-                    publishAuctionStartedEvent(id, publisher);
-                }
+                if (emails != null)
+                    publishNotifyBiddersCommand(id, emails);
+                    publishAuctionStartedEvent(id);
             }
         }
 
-        private void publishAuctionStartedEvent(string id, NetMQ.Sockets.PublisherSocket publisher) {
-            string message = "AuctionStarted <id>" + id + "</id>";
-            publisher.Send(message);
-            Console.WriteLine("Published " + message + " event...");
+        private void initializePublishers() {
+            ackPub = context.CreatePublisherSocket();
+            ackPub.Bind(Constants.START_AUCTION_ACK_ADR);
+            publisher = context.CreatePublisherSocket();
+            publisher.Bind(Constants.PUB_ADR);
         }
 
-        private void publishNotifyBiddersCommand(string id, NetMQ.Sockets.PublisherSocket publisher, string[] emails) {
-            StringBuilder addresses = new StringBuilder();
+        private void publishAuctionStartedEvent(string id) {
+            string auctionStartedEvent = "AuctionStarted <id>" + id + "</id>";
+            publisher.Send(auctionStartedEvent);
+            Console.WriteLine("\nPUB: " + auctionStartedEvent);
+        }
 
-            foreach (string address in emails) {
-                addresses.Append(address + ";");
-            }
+        private void publishNotifyBiddersCommand(string id, string[] emails) {
+            StringBuilder bidderEmails = new StringBuilder();
 
-            string message = "NotifyBidder <id>" + id + "</id>" + " <params>" + addresses.ToString().Substring(0, addresses.ToString().Length - 1) + "</params>";
-            publisher.Send(message);
-            Console.WriteLine("Published " + message + " command");
+            foreach (string address in emails)
+                bidderEmails.Append(address + ";");
+
+            string notifyBiddersCmd = "NotifyBidder <id>" + id + "</id>" + " <params>" + bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1) + "</params>";
+            publisher.Send(notifyBiddersCmd);
+            Console.WriteLine("\nPUB: " + notifyBiddersCmd);
         }
 
         private string[] getBidderEmails(string id) {
             IDatabase database = null;
 
             try {
-                ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(SERVER_NAME);
-                database = connection.GetDatabase(NAMESPACE);
-            }
-            catch (RedisConnectionException e) {
+                ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(Constants.SERVER_NAME);
+                database = connection.GetDatabase(Constants.REDIS_NAMESPACE);
+            } catch (RedisConnectionException e) {
                 Console.WriteLine("Could not connect to database - " + e.Message);
                 return null;
             }
-
             return Array.ConvertAll(database.SetMembers(id), x => (string)x);
         }
 
@@ -86,9 +84,27 @@ namespace StartAuction
             return substring.Substring(0, substring.LastIndexOf(endTag));
         }
 
-        private void publishAcknowledgement(string message){
-            acknowledgement.Send("ACK: " + message);
-            Console.WriteLine("Acknowledgement sent...");
+        private void publishAcknowledgement(string message) {
+            ackPub.Send("ACK: " + message);
+            Console.WriteLine("\nACK SENT...");
+        }
+
+        private void subToNotifyBiddersAck() {
+            var notifyBiddersAckSub = context.CreateSubscriberSocket();
+            notifyBiddersAckSub.Connect(Constants.NOTIFY_BIDDERS_ACK_ADR);
+            notifyBiddersAckSub.Subscribe(Constants.NOTIFY_BIDDERS_ACK_TOPIC);
+
+            while (true)
+                Console.WriteLine(notifyBiddersAckSub.ReceiveString());
+        }
+
+        private void subToAuctionStartedAck() {
+            var auctionStartedAckSub = context.CreateSubscriberSocket();
+            auctionStartedAckSub.Connect(Constants.AUCTION_STARTED_ACK_ADR);
+            auctionStartedAckSub.Subscribe(Constants.AUCTION_STARTED_ACK_TOPIC);
+
+            while (true)
+                Console.WriteLine(auctionStartedAckSub.ReceiveString());
         }
     }
 }
