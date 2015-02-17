@@ -14,23 +14,25 @@ namespace StartAuction
 {
     class StartAuction { 
         private NetMQContext context = NetMQContext.Create();
-        private NetMQ.Sockets.PublisherSocket ackPub, publisher;
+        private NetMQ.Sockets.PublisherSocket publisher;
 
         static void Main(string[] args) { new StartAuction().subscribeToStartAuction(); }
 
         private void subscribeToStartAuction() {
+            publisher = context.CreatePublisherSocket();
+            publisher.Bind(Constants.PUB_ADR);
+
             var startAuctionSub = context.CreateSubscriberSocket();
             startAuctionSub.Connect(Constants.START_AUCTION_ADR);
             startAuctionSub.Subscribe(Constants.START_AUCTION_TOPIC);
             Console.WriteLine("SUB: " + Constants.START_AUCTION_TOPIC + " command");
 
-            initializePublishers();
             new Thread(new ThreadStart(subToNotifyBiddersAck)).Start();
             new Thread(new ThreadStart(subToAuctionStartedAck)).Start();
 
             while (true) {
                 string startAuctionCmd = startAuctionSub.ReceiveString();
-                Console.WriteLine("\nREC: " + startAuctionCmd);
+                Console.WriteLine("REC: " + startAuctionCmd);
                 publishAcknowledgement(startAuctionCmd);
                 string id = parseMessage(startAuctionCmd, "<id>", "</id>");
                 string[] emails = getBidderEmails(id);
@@ -41,17 +43,10 @@ namespace StartAuction
             }
         }
 
-        private void initializePublishers() {
-            ackPub = context.CreatePublisherSocket();
-            ackPub.Bind(Constants.START_AUCTION_ACK_ADR);
-            publisher = context.CreatePublisherSocket();
-            publisher.Bind(Constants.PUB_ADR);
-        }
-
         private void publishAuctionStartedEvent(string id) {
             string auctionStartedEvent = "AuctionStarted <id>" + id + "</id>";
             publisher.Send(auctionStartedEvent);
-            Console.WriteLine("\nPUB: " + auctionStartedEvent);
+            Console.WriteLine("PUB: " + auctionStartedEvent + "\n");
         }
 
         private void publishNotifyBiddersCommand(string id, string[] emails) {
@@ -62,7 +57,7 @@ namespace StartAuction
 
             string notifyBiddersCmd = "NotifyBidder <id>" + id + "</id>" + " <params>" + bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1) + "</params>";
             publisher.Send(notifyBiddersCmd);
-            Console.WriteLine("\nPUB: " + notifyBiddersCmd);
+            Console.WriteLine("PUB: " + notifyBiddersCmd);
         }
 
         private string[] getBidderEmails(string id) {
@@ -85,8 +80,8 @@ namespace StartAuction
         }
 
         private void publishAcknowledgement(string message) {
-            ackPub.Send("ACK: " + message);
-            Console.WriteLine("\nACK SENT...");
+            publisher.Send("ACK: " + message);
+            Console.WriteLine("ACK SENT...");
         }
 
         private void subToNotifyBiddersAck() {
