@@ -15,3 +15,13 @@ Sample Item:
 ## License
 
 None
+
+## Setting up StartAuction service on AWS
+
+- Created AWS EC2 Windows instance
+- Connected with RDP and .pem keyfile
+- Copied Redis build to instance
+- Copied Service build to instance
+- Configure Windows Firewall to allow port access for 0mq
+
+- Service runs and works as expected
