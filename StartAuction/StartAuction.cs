@@ -2,30 +2,35 @@
 using System.Text;
 using StackExchange.Redis;
 using NetMQ;
+using NetMQ.Sockets;
 using System.Threading;
+using System.Configuration;
 
 /*
  *  The documentation was consulted on how to use both third party libraries for Redis and 0mq  
+ *  I also looked up how to use configuration files on StackOverflow
  *  0mq -> https://github.com/zeromq/netmq
  *  Redis -> https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Basics.md
+ *  Config -> http://stackoverflow.com/questions/10864755/adding-and-reading-from-a-config-file
 */
 
 namespace StartAuction
 {
     class StartAuction { 
-        private NetMQContext context = NetMQContext.Create();
-        private NetMQ.Sockets.PublisherSocket publisher;
+        private NetMQContext _context = NetMQContext.Create();
+        private PublisherSocket _publisher;
 
         static void Main(string[] args) { new StartAuction().subscribeToStartAuction(); }
 
         private void subscribeToStartAuction() {
-            publisher = context.CreatePublisherSocket();
-            publisher.Bind(Constants.PUB_ADR);
+            _publisher = _context.CreatePublisherSocket();
+            _publisher.Bind(ConfigurationManager.AppSettings["pubAddr"]);
 
-            var startAuctionSub = context.CreateSubscriberSocket();
-            startAuctionSub.Connect(Constants.START_AUCTION_ADR);
-            startAuctionSub.Subscribe(Constants.START_AUCTION_TOPIC);
-            Console.WriteLine("SUB: " + Constants.START_AUCTION_TOPIC + " command");
+            var startAuctionSub = _context.CreateSubscriberSocket();
+            var startAuctionTopic = ConfigurationManager.AppSettings["startAuctionTopic"];
+            startAuctionSub.Connect(ConfigurationManager.AppSettings["startAuctionAddr"]);
+            startAuctionSub.Subscribe(startAuctionTopic);
+            Console.WriteLine("SUB: " + startAuctionTopic);
 
             new Thread(new ThreadStart(subToNotifyBiddersAck)).Start();
             new Thread(new ThreadStart(subToAuctionStartedAck)).Start();
@@ -44,9 +49,9 @@ namespace StartAuction
         }
 
         private void publishAuctionStartedEvent(string id) {
-            string auctionStartedEvent = "AuctionStarted <id>" + id + "</id>";
-            publisher.Send(auctionStartedEvent);
-            Console.WriteLine("PUB: " + auctionStartedEvent + "\n");
+            string auctionStartedEvent = string.Concat(ConfigurationManager.AppSettings["auctionStartedTopic"], " <id>", id, "</id>");
+            _publisher.Send(auctionStartedEvent);
+            Console.WriteLine("PUB: " + auctionStartedEvent + Environment.NewLine);
         }
 
         private void publishNotifyBiddersCommand(string id, string[] emails) {
@@ -55,8 +60,9 @@ namespace StartAuction
             foreach (string address in emails)
                 bidderEmails.Append(address + ";");
 
-            string notifyBiddersCmd = "NotifyBidder <id>" + id + "</id>" + " <params>" + bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1) + "</params>";
-            publisher.Send(notifyBiddersCmd);
+            string notifyBiddersCmd = string.Concat(ConfigurationManager.AppSettings["notifyBiddersTopic"], " <id>", id, "</id>",
+                " <params>", bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1), "</params>");
+            _publisher.Send(notifyBiddersCmd);
             Console.WriteLine("PUB: " + notifyBiddersCmd);
         }
 
@@ -64,8 +70,8 @@ namespace StartAuction
             IDatabase database = null;
 
             try {
-                ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(Constants.SERVER_NAME);
-                database = connection.GetDatabase(Constants.REDIS_NAMESPACE);
+                ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
+                database = connection.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
             } catch (RedisConnectionException e) {
                 Console.WriteLine("Could not connect to database - " + e.Message);
                 return null;
@@ -80,26 +86,27 @@ namespace StartAuction
         }
 
         private void publishAcknowledgement(string message) {
-            publisher.Send("ACK: " + message);
-            Console.WriteLine("ACK SENT...");
+            string ack = string.Concat("ACK: ", message);
+            _publisher.Send(ack);
+            Console.WriteLine("PUB: " + ack);
         }
 
         private void subToNotifyBiddersAck() {
-            var notifyBiddersAckSub = context.CreateSubscriberSocket();
-            notifyBiddersAckSub.Connect(Constants.NOTIFY_BIDDERS_ACK_ADR);
-            notifyBiddersAckSub.Subscribe(Constants.NOTIFY_BIDDERS_ACK_TOPIC);
+            var notifyBiddersAckSub = _context.CreateSubscriberSocket();
+            notifyBiddersAckSub.Connect(ConfigurationManager.AppSettings["notifyBiddersAckAddr"]);
+            notifyBiddersAckSub.Subscribe(ConfigurationManager.AppSettings["notifyBiddersAckTopic"]);
 
             while (true)
-                Console.WriteLine(notifyBiddersAckSub.ReceiveString());
+                Console.WriteLine("REC:" + notifyBiddersAckSub.ReceiveString());
         }
 
         private void subToAuctionStartedAck() {
-            var auctionStartedAckSub = context.CreateSubscriberSocket();
-            auctionStartedAckSub.Connect(Constants.AUCTION_STARTED_ACK_ADR);
-            auctionStartedAckSub.Subscribe(Constants.AUCTION_STARTED_ACK_TOPIC);
+            var auctionStartedAckSub = _context.CreateSubscriberSocket();
+            auctionStartedAckSub.Connect(ConfigurationManager.AppSettings["auctionStartedAckAddr"]);
+            auctionStartedAckSub.Subscribe(ConfigurationManager.AppSettings["auctionStartedAckTopic"]);
 
             while (true)
-                Console.WriteLine(auctionStartedAckSub.ReceiveString());
+                Console.WriteLine("REC: " + auctionStartedAckSub.ReceiveString());
         }
     }
 }
