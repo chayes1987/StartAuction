@@ -50,8 +50,7 @@ namespace StartAuction
 
         private void publishAuctionStartedEvent(string id) {
             string auctionStartedEvent = string.Concat(ConfigurationManager.AppSettings["auctionStartedTopic"], " <id>", id, "</id>");
-            _publisher.Send(auctionStartedEvent);
-            Console.WriteLine("PUB: " + auctionStartedEvent + Environment.NewLine);
+            publish(auctionStartedEvent);
         }
 
         private void publishNotifyBiddersCommand(string id, string[] emails) {
@@ -62,8 +61,7 @@ namespace StartAuction
 
             string notifyBiddersCmd = string.Concat(ConfigurationManager.AppSettings["notifyBiddersTopic"], " <id>", id, "</id>",
                 " <params>", bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1), "</params>");
-            _publisher.Send(notifyBiddersCmd);
-            Console.WriteLine("PUB: " + notifyBiddersCmd);
+            publish(notifyBiddersCmd);
         }
 
         private string[] getBidderEmails(string id) {
@@ -87,8 +85,7 @@ namespace StartAuction
 
         private void publishAcknowledgement(string message) {
             string ack = string.Concat("ACK: ", message);
-            _publisher.Send(ack);
-            Console.WriteLine("PUB: " + ack);
+            publish(ack);
         }
 
         private void subToNotifyBiddersAck() {
@@ -107,6 +104,11 @@ namespace StartAuction
 
             while (true)
                 Console.WriteLine("REC: " + auctionStartedAckSub.ReceiveString());
+        }
+
+        private void publish(string message) {
+            _publisher.Send(message);
+            Console.WriteLine("PUB: " + message);
         }
     }
 }
