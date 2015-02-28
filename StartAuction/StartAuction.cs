@@ -93,7 +93,7 @@ namespace StartAuction
             notifyBiddersAckSub.Connect(ConfigurationManager.AppSettings["notifyBiddersAckAddr"]);
             notifyBiddersAckSub.Subscribe(ConfigurationManager.AppSettings["notifyBiddersAckTopic"]);
 
-            while (true) Console.WriteLine("REC:" + notifyBiddersAckSub.ReceiveString());
+            while (true) Console.WriteLine("REC: " + notifyBiddersAckSub.ReceiveString());
         }
 
         private void subToAuctionStartedAck() {
