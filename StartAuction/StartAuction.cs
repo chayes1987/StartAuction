@@ -84,7 +84,7 @@ namespace StartAuction
         }
 
         private void publishAcknowledgement(string message) {
-            string ack = string.Concat("ACK: ", message);
+            string ack = string.Concat("ACK ", message);
             publish(ack);
         }
 
