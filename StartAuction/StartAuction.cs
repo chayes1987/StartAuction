@@ -34,6 +34,7 @@ namespace StartAuction
 
             new Thread(new ThreadStart(subToNotifyBiddersAck)).Start();
             new Thread(new ThreadStart(subToAuctionStartedAck)).Start();
+            new Thread(new ThreadStart(subToHeartbeat)).Start();
 
             while (true) {
                 string startAuctionCmd = startAuctionSub.ReceiveString();
@@ -107,6 +108,20 @@ namespace StartAuction
         private void publish(string message) {
             _publisher.Send(message);
             Console.WriteLine("PUB: " + message);
+        }
+
+        private void subToHeartbeat() {
+            var heartbeatSub = _context.CreateSubscriberSocket();
+            heartbeatSub.Connect(ConfigurationManager.AppSettings["heartbeatSubAddr"]);
+            heartbeatSub.Subscribe(ConfigurationManager.AppSettings["checkHeartbeatTopic"]);
+
+            while (true) {
+                Console.WriteLine("REC: " + heartbeatSub.ReceiveString());
+                string message = String.Concat(ConfigurationManager.AppSettings["checkHeartbeatTopicResponse"], " <params>",
+                    ConfigurationManager.AppSettings["serviceName"], "</params>");
+                _publisher.Send(message);
+                Console.WriteLine("PUB: " + message);
+            }
         }
     }
 }
