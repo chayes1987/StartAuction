@@ -50,7 +50,8 @@ namespace StartAuction
         }
 
         private void publishAuctionStartedEvent(string id) {
-            string auctionStartedEvent = string.Concat(ConfigurationManager.AppSettings["auctionStartedTopic"], " <id>", id, "</id>");
+            string auctionStartedEvent = string.Concat(
+                ConfigurationManager.AppSettings["auctionStartedTopic"], " <id>", id, "</id>");
             publish(auctionStartedEvent);
         }
 
