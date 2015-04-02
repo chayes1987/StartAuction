@@ -106,8 +106,10 @@ namespace StartAuction
 
         private void subToAuctionStartedAck() {
             var auctionStartedAckSub = _context.CreateSubscriberSocket();
-            auctionStartedAckSub.Connect(ConfigurationManager.AppSettings["auctionStartedAckAddr"]);
-            auctionStartedAckSub.Subscribe(ConfigurationManager.AppSettings["auctionStartedAckTopic"]);
+            auctionStartedAckSub.Connect(
+                ConfigurationManager.AppSettings["auctionStartedAckAddr"]);
+            auctionStartedAckSub.Subscribe(
+                ConfigurationManager.AppSettings["auctionStartedAckTopic"]);
 
             while (true) Console.WriteLine("REC: " + auctionStartedAckSub.ReceiveString());
         }
