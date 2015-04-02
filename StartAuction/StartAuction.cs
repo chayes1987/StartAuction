@@ -61,8 +61,9 @@ namespace StartAuction
             foreach (string address in emails)
                 bidderEmails.Append(address + ";");
 
-            string notifyBiddersCmd = string.Concat(ConfigurationManager.AppSettings["notifyBiddersTopic"], " <id>", id, "</id>",
-                " <params>", bidderEmails.ToString().Substring(0, bidderEmails.ToString().Length - 1), "</params>");
+            string notifyBiddersCmd = string.Concat(ConfigurationManager.AppSettings["notifyBiddersTopic"],
+                " <id>", id, "</id>", " <params>", bidderEmails.ToString().Substring(0,
+                bidderEmails.ToString().Length - 1), "</params>");
             publish(notifyBiddersCmd);
         }
 
@@ -70,8 +71,10 @@ namespace StartAuction
             IDatabase database = null;
 
             try {
-                ConnectionMultiplexer connection = ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
-                database = connection.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
+                ConnectionMultiplexer connection = 
+                    ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
+                database = 
+                    connection.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
             } catch (RedisConnectionException e) {
                 Console.WriteLine("Could not connect to database - " + e.Message);
                 return null;
