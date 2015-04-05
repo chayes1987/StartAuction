@@ -7,7 +7,7 @@
     <ProjectGuid>{16CAB5EA-E3FF-469A-AA79-E4078708A8C3}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StartAuction</RootNamespace>
+    <RootNamespace>Auction</RootNamespace>
     <AssemblyName>StartAuction</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

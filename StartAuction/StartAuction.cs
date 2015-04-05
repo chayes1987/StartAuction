@@ -14,9 +14,9 @@ using System.Configuration;
  *  Config -> http://stackoverflow.com/questions/10864755/adding-and-reading-from-a-config-file
 */
 
-namespace StartAuction
+namespace Auction
 {
-    class StartAuction { 
+    public class StartAuction { 
         private NetMQContext _context = NetMQContext.Create();
         private PublisherSocket _publisher;
 
