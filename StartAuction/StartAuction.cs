@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using StackExchange.Redis;
 using NetMQ;
 using NetMQ.Sockets;
 using System.Threading;
@@ -41,7 +40,7 @@ namespace Auction
                 Console.WriteLine("REC: " + startAuctionCmd);
                 publishAcknowledgement(startAuctionCmd);
                 string id = parseMessage(startAuctionCmd, "<id>", "</id>");
-                string[] emails = getBidderEmails(id);
+                string[] emails = DatabaseManager.getBidderEmails(id);
 
                 if (emails != null)
                     publishNotifyBiddersCommand(id, emails);
@@ -66,21 +65,6 @@ namespace Auction
                 " <id>", id, "</id>", " <params>", bidderEmails.ToString().Substring(0,
                 bidderEmails.ToString().Length - 1), "</params>");
             publish(notifyBiddersCmd);
-        }
-
-        private string[] getBidderEmails(string id) {
-            IDatabase database = null;
-
-            try {
-                ConnectionMultiplexer redisConn = 
-                    ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
-                database = 
-                    redisConn.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
-            } catch (RedisConnectionException e) {
-                Console.WriteLine("Could not connect to database - " + e.Message);
-                return null;
-            }
-            return Array.ConvertAll(database.SetMembers(id), x => (string)x);
         }
 
         private string parseMessage(string message, string startTag, string endTag) {
