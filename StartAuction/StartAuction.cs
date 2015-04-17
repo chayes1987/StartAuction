@@ -72,10 +72,10 @@ namespace Auction
             IDatabase database = null;
 
             try {
-                ConnectionMultiplexer connection = 
+                ConnectionMultiplexer redisConn = 
                     ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
                 database = 
-                    connection.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
+                    redisConn.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
             } catch (RedisConnectionException e) {
                 Console.WriteLine("Could not connect to database - " + e.Message);
                 return null;
