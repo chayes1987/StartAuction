@@ -5,11 +5,15 @@ using NetMQ;
 using NetMQ.Sockets;
 using System.Threading;
 
+/*
+ *  The documentation was consulted on how to use the third party libraries  
+ *  0mq -> https://github.com/zeromq/netmq
+ *  Testing Private Methods -> http://stackoverflow.com/questions/9122708/unit-testing-private-methods-in-c-sharp
+ *  Coding Standards -> http://www.dofactory.com/reference/csharp-coding-standards
+ */
+
 namespace TestStartAuction
 {
-
-    // Testing Private Methods -> http://stackoverflow.com/questions/9122708/unit-testing-private-methods-in-c-sharp
-
     /// <summary>
     /// Start Auction Tests
     /// </summary>

@@ -6,10 +6,9 @@ using System.Threading;
 using System.Configuration;
 
 /*
- *  The documentation was consulted on how to use the third party libraries for Redis and 0mq  
+ *  The documentation was consulted on how to use the third party libraries 
  *  I also looked up how to use configuration files on StackOverflow
  *  0mq -> https://github.com/zeromq/netmq
- *  Redis -> https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Basics.md
  *  Config -> http://stackoverflow.com/questions/10864755/adding-and-reading-from-a-config-file
  *  Coding Standards -> http://www.dofactory.com/reference/csharp-coding-standards
  */
