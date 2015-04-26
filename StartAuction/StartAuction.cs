@@ -18,7 +18,8 @@ namespace Auction
     /// <summary>
     /// Start Auction Class
     /// </summary>
-    public class StartAuction {
+    public class StartAuction
+    {
         /// <summary>
         /// Context
         /// </summary>
