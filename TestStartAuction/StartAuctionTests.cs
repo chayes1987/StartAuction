@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Auction;
 using NetMQ;
 using NetMQ.Sockets;
 using System.Threading;
