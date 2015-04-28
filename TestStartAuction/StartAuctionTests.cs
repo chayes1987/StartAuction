@@ -4,6 +4,7 @@ using Auction;
 using NetMQ;
 using NetMQ.Sockets;
 using System.Threading;
+using Auction.Utils;
 
 /*
  *  The documentation was consulted on how to use the third party libraries  
@@ -32,17 +33,9 @@ namespace TestStartAuction
         [TestMethod]
         public void TestParseMessage()
         {
-            StartAuction auction = new StartAuction();
-            // Access the private method
-            PrivateObject obj = new PrivateObject(auction);
-            String[] args = {"StartAuction <id>1</id>", "<id>", "</id>"};
-            // Call the method and perform some assertions
-            var retVal = obj.Invoke("parseMessage", args);
-            Assert.AreEqual("1", retVal);
-            args = new String[] {"#Hello#&World&", "#", "&"};
-            retVal = obj.Invoke("parseMessage", args);
-            Assert.AreEqual("Hello#&World", retVal);
-            Assert.AreNotEqual("Hello#", retVal);
+            Assert.AreEqual("1", MessageParser.parseMessage("StartAuction <id>1</id>", "<id>", "</id>"));
+            Assert.AreEqual("Hello#&World", MessageParser.parseMessage("#Hello#&World&", "#", "&"));
+            Assert.AreNotEqual("Hello#", MessageParser.parseMessage("#Hello#&World&", "#", "&"));
         }
 
         /// <summary>

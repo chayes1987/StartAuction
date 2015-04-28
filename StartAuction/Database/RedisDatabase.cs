@@ -10,19 +10,19 @@ using System.Configuration;
  *  Coding Standards -> http://www.dofactory.com/reference/csharp-coding-standards
  */
 
-namespace Auction
+namespace Auction.Database
 {
     /// <summary>
-    /// Database Manager Class
+    /// Redis Database
     /// </summary>
-    static class DatabaseManager
+    public class RedisDatabase : IDatabaseManager
     {
         /// <summary>
         /// Get Bidder E-mails
         /// </summary>
         /// <param name="id">The ID of the Auction</param>
         /// <returns>The e-mail addresses of the bidders registered for the auction</returns>
-        public static string[] getBidderEmails(string id)
+        public string[] getBidderEmails(string id)
         {
             IDatabase database = null;
 
@@ -31,8 +31,7 @@ namespace Auction
             {
                 ConnectionMultiplexer redisConn =
                     ConnectionMultiplexer.Connect(ConfigurationManager.AppSettings["serverName"]);
-                database =
-                    redisConn.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
+                database = redisConn.GetDatabase(Int32.Parse(ConfigurationManager.AppSettings["namespace"]));
             }
             catch (RedisConnectionException e)
             {
