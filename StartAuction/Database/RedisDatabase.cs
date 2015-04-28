@@ -2,6 +2,8 @@
 using StackExchange.Redis;
 using System.Configuration;
 
+// Author - Conor Hayes
+
 /*
  *  The documentation was consulted on how to use the third party libraries
  *  I also looked up how to use configuration files on StackOverflow

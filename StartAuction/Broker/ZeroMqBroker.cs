@@ -6,7 +6,11 @@ using System.Configuration;
 using Auction.Utils;
 using Auction.Database;
 
-/*  0mq -> https://github.com/zeromq/netmq */
+// Author - Conor Hayes
+
+/*
+ * 0mq -> https://github.com/zeromq/netmq
+ */
 
 namespace Auction.Broker
 {

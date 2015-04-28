@@ -5,6 +5,8 @@ using NetMQ.Sockets;
 using System.Threading;
 using Auction.Utils;
 
+// Author - Conor Hayes
+
 /*
  *  The documentation was consulted on how to use the third party libraries  
  *  0mq -> https://github.com/zeromq/netmq

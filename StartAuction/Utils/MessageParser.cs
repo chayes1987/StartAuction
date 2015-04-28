@@ -1,4 +1,6 @@
-﻿namespace Auction.Utils
+﻿// Author - Conor Hayes
+
+namespace Auction.Utils
 {
     public class MessageParser
     {

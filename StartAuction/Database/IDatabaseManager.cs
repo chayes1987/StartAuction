@@ -1,4 +1,6 @@
-﻿namespace Auction.Database
+﻿// Author - Conor Hayes
+
+namespace Auction.Database
 {
     /// <summary>
     /// Database Manager Interface

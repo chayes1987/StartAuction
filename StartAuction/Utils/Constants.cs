@@ -1,6 +1,8 @@
 ﻿using Auction.Broker;
 using Auction.Database;
 
+// Author - Conor Hayes
+
 namespace Auction.Utils
 {
     public class Constants

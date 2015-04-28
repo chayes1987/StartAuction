@@ -1,4 +1,6 @@
-﻿namespace Auction.Broker
+﻿// Author - Conor Hayes
+
+namespace Auction.Broker
 {
     /// <summary>
     /// IBroker

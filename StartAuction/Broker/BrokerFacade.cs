@@ -1,5 +1,7 @@
 ﻿using Auction.Utils;
 
+// Author - Conor Hayes
+
 namespace Auction.Broker
 {
     /// <summary>
