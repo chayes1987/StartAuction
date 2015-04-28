@@ -5,7 +5,7 @@ namespace Auction.Database
     /// <summary>
     /// Database Manager Interface
     /// </summary>
-    public interface IDatabaseManager
+    public interface IDatabase
     {
         /// <summary>
         /// Get Bidder Emails

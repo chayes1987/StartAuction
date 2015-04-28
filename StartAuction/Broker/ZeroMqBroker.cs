@@ -55,7 +55,7 @@ namespace Auction.Broker
                 publishAcknowledgement(startAuctionCmd);
                 // Extract the ID and get the bidders emails
                 string id = MessageParser.parseMessage(startAuctionCmd, "<id>", "</id>");
-                IDatabaseManager database = DatabaseFacade.GetDatabase();
+                IDatabase database = DatabaseFacade.GetDatabase();
                 string[] emails = database.getBidderEmails(id);
 
                 if (emails != null)

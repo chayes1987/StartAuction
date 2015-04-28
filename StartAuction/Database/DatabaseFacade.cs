@@ -12,14 +12,14 @@ namespace Auction.Database
         /// <summary>
         /// Database
         /// </summary>
-        private static IDatabaseManager database;
+        private static IDatabase database;
 
 
         /// <summary>
         /// Get Database
         /// </summary>
         /// <returns>The Database</returns>
-        public static IDatabaseManager GetDatabase()
+        public static IDatabase GetDatabase()
         {
             if (Constants.DATABASE == DatabaseType.Redis)
             {

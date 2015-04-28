@@ -17,7 +17,7 @@ namespace Auction.Database
     /// <summary>
     /// Redis Database
     /// </summary>
-    public class RedisDatabase : IDatabaseManager
+    public class RedisDatabase : IDatabase
     {
         /// <summary>
         /// Get Bidder E-mails
@@ -26,7 +26,7 @@ namespace Auction.Database
         /// <returns>The e-mail addresses of the bidders registered for the auction</returns>
         public string[] getBidderEmails(string id)
         {
-            IDatabase database = null;
+            StackExchange.Redis.IDatabase database = null;
 
             // Connect to the database
             try
